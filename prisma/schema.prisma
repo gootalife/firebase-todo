@@ -8,7 +8,8 @@ generator client {
 }
 
 model Task {
-  uuid      String @id @default(uuid())
+  id        String @id @default(uuid())
+  userId    String @map(name: "user_id")
   createdAt String @map(name: "created_at")
   updatedAt String @map(name: "updated_at")
   title     String

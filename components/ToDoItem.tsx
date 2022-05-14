@@ -1,30 +1,31 @@
 import { useState } from 'react'
 import { Task } from '@prisma/client'
-import { Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from '@mui/material'
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { Cancel, Check, Delete, Edit } from '@mui/icons-material'
+import { useAuth } from './AuthProvider'
 
 type Props = {
   task: Task
-  setStatusText: (text: string | undefined) => void
   mutate: () => void
+  setIsAlertOpen: (isOpen: boolean) => void
+  setAlertTitle: (title: string) => void
+  setAlertText: (text: string) => void
 }
 
 export const ToDoItem = (props: Props) => {
+  const { currentUser } = useAuth()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [isOpenForm, setIsOpenForm] = useState(false)
-  const [isStatusOk, setIsStatusOk] = useState(true)
-  const [alertDialogText, setAlertDialogText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isOpenConfirm, setIsOpenConfirm] = useState(false)
 
   const handleOpenFormDialog = (task: Task) => {
     setIsOpenForm(true)
-    setIsStatusOk(true)
+    props.setIsAlertOpen(false)
     setTitle(task.title)
     setContent(task.content)
-    props.setStatusText(undefined)
   }
 
   const handleCloseFormDialog = () => {
@@ -34,42 +35,49 @@ export const ToDoItem = (props: Props) => {
   const handleUpdate = async (task: Task) => {
     setIsLoading(true)
     if (title === '' || content === '') {
-      setIsStatusOk(false)
-      setAlertDialogText('Input is invalid.')
+      props.setAlertTitle('An error occurred.')
+      props.setAlertText('Input is invalid.')
+      props.setIsAlertOpen(true)
       setIsLoading(false)
       return
     }
     if (title === task.title && content === task.content) {
-      setIsStatusOk(false)
-      setAlertDialogText('Not edited.')
+      props.setAlertTitle('An error occurred.')
+      props.setAlertText('Not edited.')
+      props.setIsAlertOpen(true)
       setIsLoading(false)
       return
     }
     const param: Partial<Task> = {
-      uuid: task.uuid,
+      id: task.id,
       title: title,
       content: content
     }
     try {
-      const res = await fetch('/api/task', {
+      const token = (await currentUser?.getIdTokenResult(true))?.token
+      const res = await fetch('/api/task/', {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(param)
       })
       if (res.ok) {
-        setIsStatusOk(true)
         setIsOpenForm(false)
-        props.setStatusText('Update completed.')
+        props.setAlertTitle('Completed')
+        props.setAlertText('Update completed.')
+        props.setIsAlertOpen(true)
         props.mutate()
       } else {
-        setIsStatusOk(false)
-        setAlertDialogText('Failed.')
+        props.setAlertTitle('An error occurred.')
+        props.setAlertText('Failed.')
+        props.setIsAlertOpen(true)
       }
     } catch (err) {
-      setIsStatusOk(false)
-      setAlertDialogText('Failed.')
+      props.setAlertTitle('An error occurred.')
+      props.setAlertText('Failed.')
+      props.setIsAlertOpen(true)
     } finally {
       setIsLoading(false)
     }
@@ -77,39 +85,43 @@ export const ToDoItem = (props: Props) => {
 
   const handleOpenConfirmDialog = (task: Task) => {
     setIsOpenConfirm(true)
-    setIsStatusOk(true)
     setTitle(task.title)
     setContent(task.content)
-    props.setStatusText(undefined)
+    props.setIsAlertOpen(false)
   }
 
   const handleCloseConfirmDialog = () => {
     setIsOpenConfirm(false)
   }
 
-  const handleDelete = async (uuid: string) => {
+  const handleDelete = async (id: string) => {
     try {
+      const token = (await currentUser?.getIdTokenResult(true))?.token
       const param: Partial<Task> = {
-        uuid: uuid
+        id: id
       }
       const res = await fetch('/api/task', {
         method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(param)
       })
       if (res.ok) {
-        setIsStatusOk(true)
-        props.setStatusText('Delete completed.')
+        props.setAlertTitle('Completed')
+        props.setAlertText('Delete completed.')
+        props.setIsAlertOpen(true)
         props.mutate()
       } else {
-        setIsStatusOk(false)
-        setAlertDialogText('Failed.')
+        props.setAlertTitle('An error occurred.')
+        props.setAlertText('Failed.')
+        props.setIsAlertOpen(true)
       }
     } catch (err) {
-      setIsStatusOk(false)
-      setAlertDialogText('Failed.')
+      props.setAlertTitle('An error occurred.')
+      props.setAlertText('Failed.')
+      props.setIsAlertOpen(true)
     }
   }
 
@@ -159,7 +171,6 @@ export const ToDoItem = (props: Props) => {
               setContent(e.currentTarget.value)
             }}
           />
-          {!isStatusOk && <Alert severity="error">{alertDialogText}</Alert>}
         </DialogContent>
         <DialogActions>
           <LoadingButton
@@ -191,13 +202,12 @@ export const ToDoItem = (props: Props) => {
         <DialogTitle>Confirm</DialogTitle>
         <DialogContent>
           <DialogContentText>Delete this?</DialogContentText>
-          {!isStatusOk && <Alert severity="error">{alertDialogText}</Alert>}
         </DialogContent>
         <DialogActions>
           <LoadingButton
             variant="contained"
             onClick={async () => {
-              await handleDelete(props.task.uuid)
+              await handleDelete(props.task.id)
             }}
             startIcon={<Delete />}
             loading={isLoading}

@@ -1,42 +1,53 @@
-import { Alert, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, TextField } from '@mui/material'
+import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, TextField } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { Task } from '@prisma/client'
 import { useState } from 'react'
 import useSWR from 'swr'
 import { ToDoItem } from 'components/ToDoItem'
-import { Cancel, Check, LibraryAdd, Save } from '@mui/icons-material'
+import { Cancel, LibraryAdd, Save } from '@mui/icons-material'
 import { AlertDialog } from './AlertDialog'
-import { ConfirmDialog } from './ConfirmDialog'
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
-const url = '/api/task'
+import { useAuth } from './AuthProvider'
 
 export const ToDo = () => {
-  const [isOpen, setIsOpen] = useState(false)
+  const { currentUser } = useAuth()
+  const fetcher = async (url: string) => {
+    const token = await currentUser?.getIdToken(true)
+    return fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    }).then((res) => res.json())
+  }
+  const [isFormOpen, setIsFormOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [success, setSuccess] = useState(true)
-  const { data: tasks, error, mutate } = useSWR<Task[]>(url, fetcher)
-  const [alertDialogText, setAlertDialogText] = useState('')
+  const { data: tasks, error, mutate } = useSWR<Task[]>('/api/task/', fetcher)
+  const [isAlertOpen, setIsAlertOpen] = useState(false)
+  const [alertTitle, setAlertTitle] = useState('')
+  const [alertText, setAlertText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [statusText, setStatusText] = useState<string | undefined>(undefined)
 
   const handleOpenDialog = () => {
-    setSuccess(true)
-    setIsOpen(true)
-    setStatusText(undefined)
+    setTitle('')
+    setContent('')
+    setIsFormOpen(true)
+    setIsAlertOpen(false)
+    setAlertTitle('')
+    setAlertText('')
   }
 
   const handleCloseDialog = () => {
-    setSuccess(true)
-    setIsOpen(false)
+    setIsFormOpen(false)
   }
 
   const handleSave = async () => {
     setIsLoading(true)
     if (title === '' || content === '') {
-      setSuccess(false)
-      setAlertDialogText('Input is invalid.')
+      setIsAlertOpen(true)
+      setAlertTitle('An error occurred.')
+      setAlertText('Input is invalid.')
       setIsLoading(false)
       return
     }
@@ -45,55 +56,43 @@ export const ToDo = () => {
       content: content
     }
     try {
-      const res = await fetch('/api/task', {
+      const token = (await currentUser?.getIdTokenResult(true))?.token
+      const res = await fetch('/api/task/', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(param)
       })
       if (res.ok) {
-        setStatusText('Save completed.')
-        setSuccess(true)
-        setIsOpen(false)
+        setAlertTitle('Completed.')
+        setAlertText('Save completed.')
+        setIsAlertOpen(true)
+        setIsFormOpen(false)
         mutate(tasks)
       } else {
-        setSuccess(false)
-        setAlertDialogText('Input is invalid.')
+        setAlertTitle('An error occurred.')
+        setAlertText('Failed.')
+        setIsAlertOpen(true)
       }
     } catch (err) {
-      setSuccess(false)
-      setAlertDialogText('Failed.')
+      setAlertTitle('An error occurred.')
+      setAlertText('Failed.')
+      setIsAlertOpen(true)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const [isTestOpen, setIsTestOpen] = useState(false)
   return (
     <>
-      <Button
-        variant="contained"
-        onClick={() => {
-          setIsTestOpen(true)
-        }}
-        startIcon={<Check />}
-      >
-        Test
-      </Button>
-      <ConfirmDialog
-        isOpen={isTestOpen}
-        title={<>title</>}
-        text={
-          <Alert sx={{ mt: 1 }} severity="success">
-            text
-          </Alert>
-        }
+      <AlertDialog
+        isOpen={isAlertOpen}
+        title={<>{alertTitle}</>}
+        text={<>{alertText}</>}
         onClose={() => {
-          setIsTestOpen(false)
-        }}
-        onExecute={() => {
-          setIsTestOpen(false)
+          setIsAlertOpen(false)
         }}
       />
 
@@ -102,38 +101,32 @@ export const ToDo = () => {
           Add
         </Button>
       </Grid>
-
-      {success && !isOpen && statusText && (
-        <Alert sx={{ mt: 1 }} severity="success">
-          {statusText}
-        </Alert>
-      )}
       <hr />
-      {(() => {
-        if (!tasks && !error) {
-          return <CircularProgress color="inherit" />
-        } else {
-          return (
+      {!tasks && !error ? (
+        <Grid container alignContent="center" justifyContent="center">
+          <CircularProgress color="inherit" />
+        </Grid>
+      ) : (
+        <>
+          {tasks && tasks.length > 0 && (
             <>
-              {tasks && (
-                <>
-                  {tasks.map((task) => (
-                    <ToDoItem
-                      key={task.uuid}
-                      task={task}
-                      setStatusText={setStatusText}
-                      mutate={() => {
-                        mutate(tasks)
-                      }}
-                    ></ToDoItem>
-                  ))}
-                </>
-              )}
+              {tasks.map((task) => (
+                <ToDoItem
+                  key={task.id}
+                  task={task}
+                  mutate={() => {
+                    mutate(tasks)
+                  }}
+                  setIsAlertOpen={setIsAlertOpen}
+                  setAlertTitle={setAlertTitle}
+                  setAlertText={setAlertText}
+                ></ToDoItem>
+              ))}
             </>
-          )
-        }
-      })()}
-      <Dialog open={isOpen} onClose={handleOpenDialog}>
+          )}
+        </>
+      )}
+      <Dialog open={isFormOpen} onClose={handleOpenDialog}>
         <DialogTitle>New ToDo</DialogTitle>
         <DialogContent>
           <DialogContentText>Please enter the items.</DialogContentText>
@@ -162,7 +155,6 @@ export const ToDo = () => {
               setContent(e.currentTarget.value)
             }}
           />
-          {!success && <Alert severity="error">{alertDialogText}</Alert>}
         </DialogContent>
         <DialogActions>
           <LoadingButton
