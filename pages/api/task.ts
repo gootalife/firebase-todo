@@ -2,7 +2,7 @@ import { Task } from '@prisma/client'
 import { NextApiRequest, NextApiResponse } from 'next'
 import prisma from 'utils/prisma'
 import { getDateNow } from 'utils/date'
-import admin from 'firebase-admin'
+import { firebaseAdmin } from 'utils/firebaseAdmin'
 
 interface ExtendedNextApiRequest extends NextApiRequest {
   body: Partial<Task>
@@ -14,7 +14,7 @@ const handler = async (req: ExtendedNextApiRequest, res: NextApiResponse) => {
     res.status(401).json({})
   } else {
     try {
-      const token = await admin.auth().verifyIdToken(headers.authorization.substring('Bearer '.length))
+      const token = await firebaseAdmin.auth().verifyIdToken(headers.authorization.substring('Bearer '.length))
       const date = getDateNow()
       switch (method) {
         case 'GET':

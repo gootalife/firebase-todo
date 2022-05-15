@@ -4,7 +4,7 @@ import { useAuth } from 'components/AuthProvider'
 import { Button } from '@mui/material'
 
 const Index = () => {
-  const { currentUser, login, logout } = useAuth()
+  const { currentUser, login } = useAuth()
 
   return (
     <>
@@ -14,9 +14,6 @@ const Index = () => {
       {currentUser ? (
         <>
           <h1>ToDoApp</h1>
-          <Button variant="contained" onClick={async () => await logout()}>
-            Logout
-          </Button>
           <ToDo></ToDo>
         </>
       ) : (

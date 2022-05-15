@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Task } from '@prisma/client'
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
-import { Cancel, Check, Delete, Edit } from '@mui/icons-material'
+import { Check, Close, Delete, Edit } from '@mui/icons-material'
 import { useAuth } from './AuthProvider'
+import { ConfirmDialog } from './ConfirmDialog'
 
 type Props = {
   task: Task
@@ -30,19 +31,21 @@ export const ToDoItem = (props: Props) => {
 
   const handleCloseFormDialog = () => {
     setIsOpenForm(false)
+    setTitle('')
+    setContent('')
   }
 
   const handleUpdate = async (task: Task) => {
     setIsLoading(true)
     if (title === '' || content === '') {
-      props.setAlertTitle('An error occurred.')
+      props.setAlertTitle('Error')
       props.setAlertText('Input is invalid.')
       props.setIsAlertOpen(true)
       setIsLoading(false)
       return
     }
     if (title === task.title && content === task.content) {
-      props.setAlertTitle('An error occurred.')
+      props.setAlertTitle('Error')
       props.setAlertText('Not edited.')
       props.setIsAlertOpen(true)
       setIsLoading(false)
@@ -70,12 +73,12 @@ export const ToDoItem = (props: Props) => {
         props.setIsAlertOpen(true)
         props.mutate()
       } else {
-        props.setAlertTitle('An error occurred.')
+        props.setAlertTitle('Error')
         props.setAlertText('Failed.')
         props.setIsAlertOpen(true)
       }
     } catch (err) {
-      props.setAlertTitle('An error occurred.')
+      props.setAlertTitle('Error')
       props.setAlertText('Failed.')
       props.setIsAlertOpen(true)
     } finally {
@@ -114,12 +117,12 @@ export const ToDoItem = (props: Props) => {
         props.setIsAlertOpen(true)
         props.mutate()
       } else {
-        props.setAlertTitle('An error occurred.')
+        props.setAlertTitle('Error')
         props.setAlertText('Failed.')
         props.setIsAlertOpen(true)
       }
     } catch (err) {
-      props.setAlertTitle('An error occurred.')
+      props.setAlertTitle('Error')
       props.setAlertText('Failed.')
       props.setIsAlertOpen(true)
     }
@@ -167,6 +170,8 @@ export const ToDoItem = (props: Props) => {
             required
             focused
             defaultValue={content}
+            multiline
+            rows={4}
             onChange={(e) => {
               setContent(e.currentTarget.value)
             }}
@@ -183,7 +188,7 @@ export const ToDoItem = (props: Props) => {
           >
             Update
           </LoadingButton>
-          <Button variant="outlined" onClick={handleCloseFormDialog} startIcon={<Cancel />}>
+          <Button variant="outlined" onClick={handleCloseFormDialog} startIcon={<Close />}>
             Cancel
           </Button>
         </DialogActions>
@@ -198,27 +203,15 @@ export const ToDoItem = (props: Props) => {
       >
         Delete
       </Button>
-      <Dialog open={isOpenConfirm} onClose={handleCloseConfirmDialog}>
-        <DialogTitle>Confirm</DialogTitle>
-        <DialogContent>
-          <DialogContentText>Delete this?</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <LoadingButton
-            variant="contained"
-            onClick={async () => {
-              await handleDelete(props.task.id)
-            }}
-            startIcon={<Delete />}
-            loading={isLoading}
-          >
-            Delete
-          </LoadingButton>
-          <Button variant="outlined" onClick={handleCloseConfirmDialog} startIcon={<Cancel />}>
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDialog
+        isOpen={isOpenConfirm}
+        onCancel={handleCloseConfirmDialog}
+        onExecute={async () => {
+          await handleDelete(props.task.id)
+        }}
+        title={<>Confirm</>}
+        text={<>Delete this?</>}
+      />
       <hr />
     </>
   )
