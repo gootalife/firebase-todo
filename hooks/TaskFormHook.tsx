@@ -10,11 +10,12 @@ import {
   Button
 } from '@mui/material'
 import { Task } from '@prisma/client'
-
-import { useState } from 'react'
-import { useAlert } from 'hooks/AlertHook'
 import { User } from 'firebase/auth'
+import { useState } from 'react'
+import { useSWRConfig } from 'swr'
+import { useAlert } from 'hooks/AlertHook'
 import { useConfirm } from 'hooks/ConfirmHook'
+import { apiPath } from 'utils/api'
 
 type UseTaskFormResult = [
   (
@@ -44,6 +45,8 @@ export const useTaskForm = (): UseTaskFormResult => {
 
   const [openAlertDialog, renderAlertDialog] = useAlert()
   const [openConfirmDialog, renderConfirmDialog] = useConfirm()
+
+  const { mutate } = useSWRConfig()
 
   const openForm = async (
     title: string,
@@ -83,7 +86,7 @@ export const useTaskForm = (): UseTaskFormResult => {
     }
     try {
       const token = (await user?.getIdTokenResult(true))?.token
-      const res = await fetch('/api/task/', {
+      const res = await fetch(apiPath.task, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +96,7 @@ export const useTaskForm = (): UseTaskFormResult => {
       })
       if (res.ok) {
         await openAlertDialog('Completed', 'Save completed.')
-        // mutate(tasks)
+        mutate(apiPath.task)
       } else {
         throw new Error()
       }
@@ -127,7 +130,7 @@ export const useTaskForm = (): UseTaskFormResult => {
     }
     try {
       const token = (await user?.getIdTokenResult(true))?.token
-      const res = await fetch('/api/task/', {
+      const res = await fetch(apiPath.task, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -137,7 +140,7 @@ export const useTaskForm = (): UseTaskFormResult => {
       })
       if (res.ok) {
         await openAlertDialog('Completed', 'Update completed.')
-        // props.mutate()
+        mutate(apiPath.task)
       } else {
         throw new Error()
       }
@@ -157,17 +160,16 @@ export const useTaskForm = (): UseTaskFormResult => {
         <DialogContent>
           <DialogContentText>{text}</DialogContentText>
           <TextField
-            autoFocus
             margin="dense"
             label="Title"
             type="text"
             fullWidth
             variant="outlined"
             required
-            focused
             onChange={(e) => {
               setTaskTitle(e.currentTarget.value)
             }}
+            defaultValue={taskTitle}
           />
           <TextField
             margin="dense"
@@ -176,12 +178,12 @@ export const useTaskForm = (): UseTaskFormResult => {
             fullWidth
             variant="outlined"
             required
-            focused
             multiline
             rows={4}
             onChange={(e) => {
               setTaskContent(e.currentTarget.value)
             }}
+            defaultValue={taskContent}
           />
         </DialogContent>
         <DialogActions>

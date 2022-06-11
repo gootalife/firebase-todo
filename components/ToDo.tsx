@@ -5,6 +5,7 @@ import useSWR from 'swr'
 import { ToDoItem } from 'components/ToDoItem'
 import { useAuth } from 'contexts/AuthProvider'
 import { useTaskForm } from 'hooks/TaskFormHook'
+import { apiPath } from 'utils/api'
 
 export const ToDo = () => {
   const { currentUser } = useAuth()
@@ -20,7 +21,7 @@ export const ToDo = () => {
     })
     return res.json()
   }
-  const { data: tasks, error, mutate } = useSWR<Task[]>('/api/task/', fetcher)
+  const { data: tasks, error } = useSWR<Task[]>(apiPath.task, fetcher)
 
   const [openTaskForm, renderTaskForm] = useTaskForm()
 
@@ -45,13 +46,7 @@ export const ToDo = () => {
           {tasks && (
             <>
               {tasks.map((task) => (
-                <ToDoItem
-                  key={task.id}
-                  task={task}
-                  mutate={() => {
-                    mutate(tasks)
-                  }}
-                ></ToDoItem>
+                <ToDoItem key={task.id} task={task}></ToDoItem>
               ))}
             </>
           )}

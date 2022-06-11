@@ -5,10 +5,11 @@ import { useAuth } from 'contexts/AuthProvider'
 import { useConfirm } from 'hooks/ConfirmHook'
 import { useAlert } from 'hooks/AlertHook'
 import { useTaskForm } from 'hooks/TaskFormHook'
+import { apiPath } from 'utils/api'
+import { useSWRConfig } from 'swr'
 
 type Props = {
   task: Task
-  mutate: () => void
 }
 
 export const ToDoItem = (props: Props) => {
@@ -16,6 +17,7 @@ export const ToDoItem = (props: Props) => {
   const [openAlertDialog, renderAlertDialog] = useAlert()
   const [openConfirmDialog, renderConfirmDialog] = useConfirm()
   const [openTaskForm, renderTaskForm] = useTaskForm()
+  const { mutate } = useSWRConfig()
 
   const handleDelete = async () => {
     try {
@@ -27,7 +29,7 @@ export const ToDoItem = (props: Props) => {
       const param: Partial<Task> = {
         id: props.task.id
       }
-      const res = await fetch('/api/task', {
+      const res = await fetch(apiPath.task, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -37,7 +39,7 @@ export const ToDoItem = (props: Props) => {
       })
       if (res.ok) {
         await openAlertDialog('Completed', 'Delete completed.')
-        props.mutate()
+        mutate(apiPath.task)
       } else {
         throw new Error()
       }
