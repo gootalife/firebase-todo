@@ -1,11 +1,18 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle
+} from '@mui/material'
 import { Check, Close } from '@mui/icons-material'
 import { LoadingButton } from '@mui/lab'
 import { useState } from 'react'
 
 type Props = {
-  title: JSX.Element
-  text: JSX.Element
+  title: string
+  text: string
   isOpen: boolean
   onCancel: () => void | Promise<void>
   onExecute: () => void | Promise<void>
@@ -27,7 +34,12 @@ export const ConfirmDialog = (props: Props) => {
         <DialogContentText>{props.text}</DialogContentText>
       </DialogContent>
       <DialogActions>
-        <LoadingButton variant="contained" onClick={handleExecute} startIcon={<Check />} loading={isLoading}>
+        <LoadingButton
+          variant="contained"
+          onClick={handleExecute}
+          startIcon={<Check />}
+          loading={isLoading}
+        >
           YES
         </LoadingButton>
         <Button variant="outlined" onClick={props.onCancel} startIcon={<Close />}>

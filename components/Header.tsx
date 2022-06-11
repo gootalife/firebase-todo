@@ -1,8 +1,8 @@
 import { AppBar, Button, IconButton, MenuItem, Toolbar, Typography, Menu } from '@mui/material'
 import { AccountCircle, Menu as MenuIcon, Logout, Person } from '@mui/icons-material'
 import { useEffect, useState } from 'react'
-import { DrawerMenu } from './DrawerMenu'
-import { useAuth } from './AuthProvider'
+import { DrawerMenu } from 'components/DrawerMenu'
+import { useAuth } from 'contexts/AuthProvider'
 
 export const Header = () => {
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -27,7 +27,14 @@ export const Header = () => {
     <>
       <AppBar position="static">
         <Toolbar>
-          <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }} onClick={toggleDrawer}>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+            onClick={toggleDrawer}
+          >
             <MenuIcon />
           </IconButton>
           <Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>

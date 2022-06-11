@@ -1,107 +1,31 @@
-import { useState } from 'react'
 import { Task } from '@prisma/client'
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from '@mui/material'
-import { LoadingButton } from '@mui/lab'
-import { Check, Close, Delete, Edit } from '@mui/icons-material'
-import { useAuth } from './AuthProvider'
-import { ConfirmDialog } from './ConfirmDialog'
+import { Button } from '@mui/material'
+import { Delete, Edit } from '@mui/icons-material'
+import { useAuth } from 'contexts/AuthProvider'
+import { useConfirm } from 'hooks/ConfirmHook'
+import { useAlert } from 'hooks/AlertHook'
+import { useTaskForm } from 'hooks/TaskFormHook'
 
 type Props = {
   task: Task
   mutate: () => void
-  setIsAlertOpen: (isOpen: boolean) => void
-  setAlertTitle: (title: string) => void
-  setAlertText: (text: string) => void
 }
 
 export const ToDoItem = (props: Props) => {
   const { currentUser } = useAuth()
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [isOpenForm, setIsOpenForm] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isOpenConfirm, setIsOpenConfirm] = useState(false)
+  const [openAlertDialog, renderAlertDialog] = useAlert()
+  const [openConfirmDialog, renderConfirmDialog] = useConfirm()
+  const [openTaskForm, renderTaskForm] = useTaskForm()
 
-  const handleOpenFormDialog = (task: Task) => {
-    setIsOpenForm(true)
-    props.setIsAlertOpen(false)
-    setTitle(task.title)
-    setContent(task.content)
-  }
-
-  const handleCloseFormDialog = () => {
-    setIsOpenForm(false)
-    setTitle('')
-    setContent('')
-  }
-
-  const handleUpdate = async (task: Task) => {
-    setIsLoading(true)
-    if (title === '' || content === '') {
-      props.setAlertTitle('Error')
-      props.setAlertText('Input is invalid.')
-      props.setIsAlertOpen(true)
-      setIsLoading(false)
-      return
-    }
-    if (title === task.title && content === task.content) {
-      props.setAlertTitle('Error')
-      props.setAlertText('Not edited.')
-      props.setIsAlertOpen(true)
-      setIsLoading(false)
-      return
-    }
-    const param: Partial<Task> = {
-      id: task.id,
-      title: title,
-      content: content
-    }
+  const handleDelete = async () => {
     try {
-      const token = (await currentUser?.getIdTokenResult(true))?.token
-      const res = await fetch('/api/task/', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(param)
-      })
-      if (res.ok) {
-        setIsOpenForm(false)
-        props.setAlertTitle('Completed')
-        props.setAlertText('Update completed.')
-        props.setIsAlertOpen(true)
-        props.mutate()
-      } else {
-        props.setAlertTitle('Error')
-        props.setAlertText('Failed.')
-        props.setIsAlertOpen(true)
+      const isConfirmed = await openConfirmDialog('Confirm', 'Delete This?')
+      if (!isConfirmed) {
+        return
       }
-    } catch (err) {
-      props.setAlertTitle('Error')
-      props.setAlertText('Failed.')
-      props.setIsAlertOpen(true)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleOpenConfirmDialog = (task: Task) => {
-    setIsOpenConfirm(true)
-    setTitle(task.title)
-    setContent(task.content)
-    props.setIsAlertOpen(false)
-  }
-
-  const handleCloseConfirmDialog = () => {
-    setIsOpenConfirm(false)
-  }
-
-  const handleDelete = async (id: string) => {
-    try {
       const token = (await currentUser?.getIdTokenResult(true))?.token
       const param: Partial<Task> = {
-        id: id
+        id: props.task.id
       }
       const res = await fetch('/api/task', {
         method: 'DELETE',
@@ -112,19 +36,13 @@ export const ToDoItem = (props: Props) => {
         body: JSON.stringify(param)
       })
       if (res.ok) {
-        props.setAlertTitle('Completed')
-        props.setAlertText('Delete completed.')
-        props.setIsAlertOpen(true)
+        await openAlertDialog('Completed', 'Delete completed.')
         props.mutate()
       } else {
-        props.setAlertTitle('Error')
-        props.setAlertText('Failed.')
-        props.setIsAlertOpen(true)
+        throw new Error()
       }
     } catch (err) {
-      props.setAlertTitle('Error')
-      props.setAlertText('Failed.')
-      props.setIsAlertOpen(true)
+      await openAlertDialog('Error', 'Failed')
     }
   }
 
@@ -136,82 +54,19 @@ export const ToDoItem = (props: Props) => {
       <Button
         sx={{ mr: 1 }}
         variant="contained"
-        onClick={() => {
-          handleOpenFormDialog(props.task)
+        onClick={async () => {
+          await openTaskForm('Update ToDo', 'Edit items.', true, currentUser, props.task)
         }}
         startIcon={<Edit />}
       >
         Edit
       </Button>
-      <Dialog open={isOpenForm} onClose={handleCloseFormDialog}>
-        <DialogTitle>Update ToDo</DialogTitle>
-        <DialogContent>
-          <DialogContentText>Please enter the items.</DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Title"
-            type="text"
-            fullWidth
-            variant="outlined"
-            required
-            focused
-            defaultValue={title}
-            onChange={(e) => {
-              setTitle(e.currentTarget.value)
-            }}
-          />
-          <TextField
-            margin="dense"
-            label="Content"
-            type="text"
-            fullWidth
-            variant="outlined"
-            required
-            focused
-            defaultValue={content}
-            multiline
-            rows={4}
-            onChange={(e) => {
-              setContent(e.currentTarget.value)
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <LoadingButton
-            variant="contained"
-            onClick={async () => {
-              await handleUpdate(props.task)
-            }}
-            startIcon={<Check />}
-            loading={isLoading}
-          >
-            Update
-          </LoadingButton>
-          <Button variant="outlined" onClick={handleCloseFormDialog} startIcon={<Close />}>
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Button
-        variant="contained"
-        onClick={() => {
-          handleOpenConfirmDialog(props.task)
-        }}
-        startIcon={<Delete />}
-      >
+      <Button variant="contained" onClick={handleDelete} startIcon={<Delete />}>
         Delete
       </Button>
-      <ConfirmDialog
-        isOpen={isOpenConfirm}
-        onCancel={handleCloseConfirmDialog}
-        onExecute={async () => {
-          await handleDelete(props.task.id)
-        }}
-        title={<>Confirm</>}
-        text={<>Delete this?</>}
-      />
+      {renderTaskForm()}
+      {renderAlertDialog()}
+      {renderConfirmDialog()}
       <hr />
     </>
   )

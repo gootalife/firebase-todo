@@ -2,9 +2,9 @@
 
 ログイン →CRUD 操作のサンプルアプリです。
 
-フレームワーク・ライブラリ等:Next.js/firebase/Prisma/Material-Ui
+フレームワーク・ライブラリ等:Next.js/Firebase/Prisma/Material-Ui/SQLite
 
-firebase の serviceAccountKey.json をプロジェクトルートに置く必要があります。
+Firebase の serviceAccountKey.json をプロジェクトルートに置く必要があります。
 
 ## ENV
 

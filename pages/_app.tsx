@@ -1,7 +1,7 @@
 import type { AppProps } from 'next/app'
 import { Layout } from 'components/Layout'
 import { createTheme, CssBaseline, ThemeProvider } from '@mui/material'
-import { AuthProvider } from 'components/AuthProvider'
+import { AuthProvider } from 'contexts/AuthProvider'
 
 const theme = createTheme({
   palette: {

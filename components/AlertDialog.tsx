@@ -1,9 +1,16 @@
-import { Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle
+} from '@mui/material'
 import { Check } from '@mui/icons-material'
 
 type Props = {
-  title: JSX.Element
-  text: JSX.Element
+  title: string
+  text: string
   isOpen: boolean
   onClose: () => void | Promise<void>
 }

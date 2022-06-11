@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import { ToDo } from 'components/ToDo'
-import { useAuth } from 'components/AuthProvider'
+import { useAuth } from 'contexts/AuthProvider'
 import { Button } from '@mui/material'
 
 const Index = () => {
