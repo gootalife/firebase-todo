@@ -13,12 +13,12 @@ const Index = () => {
       </Head>
       {currentUser ? (
         <>
-          <h1>ToDoApp</h1>
+          <h1>ToDo List</h1>
           <ToDo></ToDo>
         </>
       ) : (
         <>
-          <h1>ログイン</h1>
+          <h1>Login</h1>
           <Button variant="contained" onClick={async () => await login()}>
             Login with google
           </Button>

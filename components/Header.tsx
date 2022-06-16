@@ -1,8 +1,10 @@
-import { AppBar, Button, IconButton, MenuItem, Toolbar, Typography, Menu } from '@mui/material'
+import { AppBar, Button, IconButton, MenuItem, Toolbar, Typography, Menu, Box } from '@mui/material'
 import { AccountCircle, Menu as MenuIcon, Logout, Person } from '@mui/icons-material'
 import { useEffect, useState } from 'react'
 import { DrawerMenu } from 'components/DrawerMenu'
 import { useAuth } from 'contexts/AuthProvider'
+import { path } from 'utils/path'
+import Link from 'next/link'
 
 export const Header = () => {
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -15,11 +17,11 @@ export const Header = () => {
     setAnchorEl(null)
   }, [currentUser])
 
-  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
+  const openMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
   }
 
-  const handleClose = () => {
+  const closeMenu = async () => {
     setAnchorEl(null)
   }
 
@@ -37,9 +39,12 @@ export const Header = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>
-            ToDoApp
-          </Typography>
+          <Link href={path.home}>
+            <Typography variant="h5" component="div" sx={{ cursor: 'pointer' }}>
+              ToDoApp
+            </Typography>
+          </Link>
+          <Box sx={{ flexGrow: 1 }}></Box>
           {currentUser ? (
             <>
               <IconButton
@@ -47,7 +52,7 @@ export const Header = () => {
                 aria-label="account of current user"
                 aria-controls="menu-appbar"
                 aria-haspopup="true"
-                onClick={handleMenu}
+                onClick={openMenu}
                 color="inherit"
               >
                 <AccountCircle />
@@ -65,12 +70,14 @@ export const Header = () => {
                   horizontal: 'right'
                 }}
                 open={anchorEl != null}
-                onClose={handleClose}
+                onClose={closeMenu}
               >
-                <MenuItem onClick={handleClose}>
-                  <Person sx={{ mr: 1 }} />
-                  Profile
-                </MenuItem>
+                <Link href={path.user}>
+                  <MenuItem onClick={closeMenu}>
+                    <Person sx={{ mr: 1 }} />
+                    Profile
+                  </MenuItem>
+                </Link>
                 <MenuItem onClick={logout}>
                   <Logout sx={{ mr: 1 }} />
                   Logout
