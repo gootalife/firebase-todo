@@ -13,9 +13,10 @@ import { Task } from '@prisma/client'
 import { User } from 'firebase/auth'
 import { useState } from 'react'
 import { useSWRConfig } from 'swr'
-import { useAlert } from 'hooks/AlertHook'
-import { useConfirm } from 'hooks/ConfirmHook'
+import { useAlert } from 'hooks/alertHook'
+import { useConfirm } from 'hooks/confirmHook'
 import { apiPath } from 'utils/api'
+import { insertTask, updateTask } from 'utils/api'
 
 type UseTaskFormResult = [
   (
@@ -74,8 +75,8 @@ export const useTaskForm = (): UseTaskFormResult => {
     resolveCallback.do()
   }
 
-  const save = async () => {
-    if (taskTitle === '' || taskContent === '') {
+  const insert = async () => {
+    if (taskTitle === '' || taskContent === '' || !user) {
       await openAlertDialog('Error', 'Input is invalid.')
       return
     }
@@ -85,15 +86,7 @@ export const useTaskForm = (): UseTaskFormResult => {
       content: taskContent
     }
     try {
-      const token = (await user?.getIdTokenResult(true))?.token
-      const res = await fetch(apiPath.task, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(param)
-      })
+      const res = await insertTask(param, user)
       if (res.ok) {
         await openAlertDialog('Completed', 'Save completed.')
         mutate(apiPath.task)
@@ -110,7 +103,7 @@ export const useTaskForm = (): UseTaskFormResult => {
   }
 
   const update = async () => {
-    if (taskTitle === '' || taskContent === '') {
+    if (taskTitle === '' || taskContent === '' || !user) {
       await openAlertDialog('Error', 'Input is invalid.')
       return
     }
@@ -129,15 +122,7 @@ export const useTaskForm = (): UseTaskFormResult => {
       content: taskContent
     }
     try {
-      const token = (await user?.getIdTokenResult(true))?.token
-      const res = await fetch(apiPath.task, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(param)
-      })
+      const res = await updateTask(param, user)
       if (res.ok) {
         await openAlertDialog('Completed', 'Update completed.')
         mutate(apiPath.task)
@@ -188,7 +173,7 @@ export const useTaskForm = (): UseTaskFormResult => {
         </DialogContent>
         <DialogActions>
           <LoadingButton
-            onClick={updateMode === true ? update : save}
+            onClick={updateMode === true ? update : insert}
             variant="contained"
             loading={isLoading}
             startIcon={updateMode === true ? <Check /> : <Save />}

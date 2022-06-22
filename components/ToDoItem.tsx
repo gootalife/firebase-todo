@@ -2,11 +2,12 @@ import { Task } from '@prisma/client'
 import { Button } from '@mui/material'
 import { Delete, Edit } from '@mui/icons-material'
 import { useAuth } from 'contexts/AuthProvider'
-import { useConfirm } from 'hooks/ConfirmHook'
-import { useAlert } from 'hooks/AlertHook'
-import { useTaskForm } from 'hooks/TaskFormHook'
+import { useConfirm } from 'hooks/confirmHook'
+import { useAlert } from 'hooks/alertHook'
+import { useTaskForm } from 'hooks/taskFormHook'
 import { apiPath } from 'utils/api'
 import { useSWRConfig } from 'swr'
+import { deleteTask } from 'utils/api'
 
 type Props = {
   task: Task
@@ -22,21 +23,10 @@ export const ToDoItem = (props: Props) => {
   const handleDelete = async () => {
     try {
       const isConfirmed = await openConfirmDialog('Confirm', 'Delete This?')
-      if (!isConfirmed) {
+      if (!isConfirmed || !currentUser) {
         return
       }
-      const token = (await currentUser?.getIdTokenResult(true))?.token
-      const param: Partial<Task> = {
-        id: props.task.id
-      }
-      const res = await fetch(apiPath.task, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(param)
-      })
+      const res = await deleteTask(props.task.id, currentUser)
       if (res.ok) {
         await openAlertDialog('Completed', 'Delete completed.')
         mutate(apiPath.task)

@@ -14,7 +14,9 @@ const handler = async (req: ExtendedNextApiRequest, res: NextApiResponse) => {
     res.status(401).json({})
   } else {
     try {
-      const token = await firebaseAdmin.auth().verifyIdToken(headers.authorization.substring('Bearer '.length))
+      const token = await firebaseAdmin
+        .auth()
+        .verifyIdToken(headers.authorization.substring('Bearer '.length))
       const date = getDateNow()
       switch (method) {
         case 'GET':
