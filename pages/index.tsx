@@ -1,7 +1,8 @@
 import Head from 'next/head'
 import { ToDo } from 'components/ToDo'
 import { useAuth } from 'contexts/AuthProvider'
-import { Button } from '@mui/material'
+import { Button, CircularProgress, Grid } from '@mui/material'
+import { Suspense } from 'react'
 
 const Index = () => {
   const { currentUser, login } = useAuth()

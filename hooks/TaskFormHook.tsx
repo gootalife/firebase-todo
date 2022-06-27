@@ -10,22 +10,17 @@ import {
   Button
 } from '@mui/material'
 import { Task } from '@prisma/client'
-import { User } from 'firebase/auth'
 import { useState } from 'react'
-import { useSWRConfig } from 'swr'
 import { useAlert } from 'hooks/alertHook'
 import { useConfirm } from 'hooks/confirmHook'
-import { apiPath } from 'utils/api'
-import { insertTask, updateTask } from 'utils/api'
+
+type TaskFormItem = {
+  title: string
+  content: string
+}
 
 type UseTaskFormResult = [
-  (
-    title: string,
-    text: string,
-    updateMode: boolean,
-    user: User | null | undefined,
-    task?: Task
-  ) => Promise<void>,
+  (title: string, text: string, task: Task | undefined) => Promise<TaskFormItem | undefined>,
   () => JSX.Element
 ]
 
@@ -33,12 +28,10 @@ export const useTaskForm = (): UseTaskFormResult => {
   const [isOpen, setIsOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [text, setText] = useState('')
-  const [updateMode, setUpdateMode] = useState(false)
-  const [user, setUser] = useState<User | null | undefined>()
   const [task, setTask] = useState<Task | undefined>()
   const [isLoading, setIsLoading] = useState(false)
   const [resolveCallback, setResolveCallback] = useState<{
-    do: (value: void | PromiseLike<void>) => void
+    do: (value: TaskFormItem | PromiseLike<TaskFormItem> | undefined) => void
   }>({ do: () => {} })
 
   const [taskTitle, setTaskTitle] = useState('')
@@ -47,19 +40,13 @@ export const useTaskForm = (): UseTaskFormResult => {
   const [openAlertDialog, renderAlertDialog] = useAlert()
   const [openConfirmDialog, renderConfirmDialog] = useConfirm()
 
-  const { mutate } = useSWRConfig()
-
   const openForm = async (
     title: string,
     text: string,
-    updateMode: boolean,
-    user: User | null | undefined,
-    task?: Task
-  ): Promise<void> => {
+    task: Task | undefined
+  ): Promise<TaskFormItem | undefined> => {
     setTitle(title)
     setText(text)
-    setUpdateMode(updateMode)
-    setUser(user)
     setTask(task)
     setTaskTitle(task?.title ?? '')
     setTaskContent(task?.content ?? '')
@@ -72,70 +59,29 @@ export const useTaskForm = (): UseTaskFormResult => {
 
   const close = () => {
     setIsOpen(false)
-    resolveCallback.do()
+    resolveCallback.do(undefined)
   }
 
-  const insert = async () => {
-    if (taskTitle === '' || taskContent === '' || !user) {
-      await openAlertDialog('Error', 'Input is invalid.')
-      return
-    }
+  const validateItem = async () => {
     setIsLoading(true)
-    const param: Partial<Task> = {
-      title: taskTitle,
-      content: taskContent
-    }
-    try {
-      const res = await insertTask(param, user)
-      if (res.ok) {
-        await openAlertDialog('Completed', 'Save completed.')
-        mutate(apiPath.task)
-      } else {
-        throw new Error()
-      }
-    } catch (err) {
-      await openAlertDialog('Error', 'Failed.')
-    } finally {
-      setIsLoading(false)
-      setIsOpen(false)
-      resolveCallback.do()
-    }
-  }
-
-  const update = async () => {
-    if (taskTitle === '' || taskContent === '' || !user) {
-      await openAlertDialog('Error', 'Input is invalid.')
-      return
-    }
-    if (taskTitle === task?.title && taskContent === task?.content) {
-      await openAlertDialog('Error', 'Not edited.')
-      return
-    }
-    const isConfirmed = await openConfirmDialog('Confirm', 'Update This?')
+    const isConfirmed = await openConfirmDialog('Confirm', 'OK?')
     if (!isConfirmed) {
+      setIsLoading(false)
       return
     }
-    setIsLoading(true)
-    const param: Partial<Task> = {
-      id: task?.id,
-      title: taskTitle,
-      content: taskContent
-    }
-    try {
-      const res = await updateTask(param, user)
-      if (res.ok) {
-        await openAlertDialog('Completed', 'Update completed.')
-        mutate(apiPath.task)
-      } else {
-        throw new Error()
-      }
-    } catch (err) {
-      await openAlertDialog('Error', 'Failed')
-    } finally {
+    if (taskTitle === '' || taskTitle === task?.title) {
+      await openAlertDialog('error', 'Title is invalid.')
       setIsLoading(false)
-      setIsOpen(false)
-      resolveCallback.do()
+      return
     }
+    if (taskContent === '' || taskContent === task?.content) {
+      await openAlertDialog('error', 'Content is invalid.')
+      setIsLoading(false)
+      return
+    }
+    setIsLoading(false)
+    setIsOpen(false)
+    resolveCallback.do({ title: taskTitle, content: taskContent })
   }
 
   const renderForm = () => (
@@ -173,12 +119,12 @@ export const useTaskForm = (): UseTaskFormResult => {
         </DialogContent>
         <DialogActions>
           <LoadingButton
-            onClick={updateMode === true ? update : insert}
+            onClick={validateItem}
             variant="contained"
             loading={isLoading}
-            startIcon={updateMode === true ? <Check /> : <Save />}
+            startIcon={<Check />}
           >
-            {updateMode === true ? 'Update' : 'Save'}
+            OK
           </LoadingButton>
           <Button onClick={close} variant="outlined" startIcon={<Close />}>
             Cancel

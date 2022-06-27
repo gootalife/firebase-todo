@@ -2,12 +2,11 @@ import { Task } from '@prisma/client'
 import { Button } from '@mui/material'
 import { Delete, Edit } from '@mui/icons-material'
 import { useAuth } from 'contexts/AuthProvider'
+import { useSWRConfig } from 'swr'
 import { useConfirm } from 'hooks/confirmHook'
 import { useAlert } from 'hooks/alertHook'
 import { useTaskForm } from 'hooks/taskFormHook'
-import { apiPath } from 'utils/api'
-import { useSWRConfig } from 'swr'
-import { deleteTask } from 'utils/api'
+import { apiPath, updateTask, deleteTask } from 'utils/api'
 
 type Props = {
   task: Task
@@ -19,6 +18,33 @@ export const ToDoItem = (props: Props) => {
   const [openConfirmDialog, renderConfirmDialog] = useConfirm()
   const [openTaskForm, renderTaskForm] = useTaskForm()
   const { mutate } = useSWRConfig()
+
+  const update = async () => {
+    const task = await openTaskForm('TaskForm', 'Input items', props.task)
+    if (!task || !currentUser) {
+      return
+    }
+    if (task.title === '' || task.content === '') {
+      await openAlertDialog('Error', 'Input is invalid.')
+      return
+    }
+    const param: Partial<Task> = {
+      id: props.task.id,
+      title: task.title,
+      content: task.content
+    }
+    try {
+      const res = await updateTask(param, currentUser)
+      if (res.ok) {
+        await openAlertDialog('Completed', 'Update completed.')
+        mutate(apiPath.task)
+      } else {
+        throw new Error()
+      }
+    } catch (err) {
+      await openAlertDialog('Error', 'Failed')
+    }
+  }
 
   const handleDelete = async () => {
     try {
@@ -43,14 +69,7 @@ export const ToDoItem = (props: Props) => {
       <h3>{props.task.title}</h3>
       <div>{props.task.content}</div>
 
-      <Button
-        sx={{ mr: 1 }}
-        variant="contained"
-        onClick={async () => {
-          await openTaskForm('Update ToDo', 'Edit items.', true, currentUser, props.task)
-        }}
-        startIcon={<Edit />}
-      >
+      <Button sx={{ mr: 1 }} variant="contained" onClick={update} startIcon={<Edit />}>
         Edit
       </Button>
       <Button variant="contained" onClick={handleDelete} startIcon={<Delete />}>
