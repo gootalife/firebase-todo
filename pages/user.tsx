@@ -1,9 +1,8 @@
 import Head from 'next/head'
-import { authAtom } from 'atoms/atoms'
-import { useAtom } from 'jotai'
+import { useAuth } from 'hooks/authHook'
 
 const User = () => {
-  const [currentUser] = useAtom(authAtom)
+  const currentUser = useAuth()
   return (
     <>
       <Head>

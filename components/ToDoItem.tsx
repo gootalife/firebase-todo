@@ -6,15 +6,14 @@ import { useConfirm } from 'hooks/confirmHook'
 import { useAlert } from 'hooks/alertHook'
 import { useTaskForm } from 'hooks/taskFormHook'
 import { apiPath, updateTask, deleteTask } from 'utils/api'
-import { useAtom } from 'jotai'
-import { authAtom } from 'atoms/atoms'
+import { useAuth } from 'hooks/authHook'
 
 type Props = {
   task: Task
 }
 
 export const ToDoItem = (props: Props) => {
-  const [currentUser] = useAtom(authAtom)
+  const currentUser = useAuth()
   const [openAlertDialog, renderAlertDialog] = useAlert()
   const [openConfirmDialog, renderConfirmDialog] = useConfirm()
   const [openTaskForm, renderTaskForm] = useTaskForm()

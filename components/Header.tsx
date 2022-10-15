@@ -4,12 +4,11 @@ import { useEffect, useState } from 'react'
 import { DrawerMenu } from 'components/DrawerMenu'
 import { path } from 'utils/path'
 import Link from 'next/link'
-import { authAtom } from 'atoms/atoms'
-import { useAtom } from 'jotai'
 import { loginWithGoogle, logout } from 'utils/firebase'
+import { useAuth } from 'hooks/authHook'
 
 export const Header = () => {
-  const [currentUser] = useAtom(authAtom)
+  const currentUser = useAuth()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const toggleDrawer = () => setDrawerOpen(!drawerOpen)

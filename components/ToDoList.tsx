@@ -2,15 +2,14 @@ import { Task } from '@prisma/client'
 import useSWR from 'swr'
 import { ToDoItem } from 'components/ToDoItem'
 import { apiPath } from 'utils/api'
-import { authAtom } from 'atoms/atoms'
-import { useAtom } from 'jotai'
+import { useAuth } from 'hooks/authHook'
 
 const isArray = <T,>(maybeArray: T | readonly T[]): maybeArray is T[] => {
   return Array.isArray(maybeArray)
 }
 
 export const ToDoList = () => {
-  const [currentUser] = useAtom(authAtom)
+  const currentUser = useAuth()
   const fetcher = async (url: string) => {
     const token = await currentUser?.getIdToken(true)
     const res = await fetch(url, {

@@ -22,6 +22,6 @@ authAtom.onMount = (setAtom) => {
     return unsubscribe;
 };
 
-export const useAuthUser = () => {
+export const useAuth = () => {
     return useAtomValue(authAtom);
 }

@@ -1,6 +1,5 @@
 import Head from 'next/head'
 import { ToDoList } from 'components/ToDoList'
-import { useAuth } from 'contexts/AuthProvider'
 import { Button, CircularProgress, Grid } from '@mui/material'
 import { Suspense } from 'react'
 import { apiPath, insertTask } from 'utils/api'
@@ -9,12 +8,11 @@ import { useAlert } from 'hooks/alertHook'
 import { Task } from '@prisma/client'
 import { LibraryAdd } from '@mui/icons-material'
 import { mutate } from 'swr'
-import { authAtom } from 'atoms/atoms'
-import { useAtom } from 'jotai'
 import { loginWithGoogle } from 'utils/firebase'
+import { useAuth } from 'hooks/authHook'
 
 const Index = () => {
-  const [currentUser] = useAtom(authAtom)
+  const currentUser = useAuth()
   const [openTaskForm, renderTaskForm] = useTaskForm()
   const [openAlertDialog, renderAlertDialog] = useAlert()
 
