@@ -19,12 +19,12 @@ type TaskFormItem = {
   content: string
 }
 
-type UseTaskFormResult = [
-  (title: string, text: string, task: Task | undefined) => Promise<TaskFormItem | undefined>,
+type TaskFormHook = [
+  (title: string, text: string, task?: Task) => Promise<TaskFormItem | undefined>,
   () => JSX.Element
 ]
 
-export const useTaskForm = (): UseTaskFormResult => {
+export const useTaskForm = (): TaskFormHook => {
   const [isOpen, setIsOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [text, setText] = useState('')
@@ -43,7 +43,7 @@ export const useTaskForm = (): UseTaskFormResult => {
   const openForm = async (
     title: string,
     text: string,
-    task: Task | undefined
+    task?: Task
   ): Promise<TaskFormItem | undefined> => {
     setTitle(title)
     setText(text)
@@ -69,13 +69,13 @@ export const useTaskForm = (): UseTaskFormResult => {
       setIsLoading(false)
       return
     }
-    if (taskTitle === '' || taskTitle === task?.title) {
-      await openAlertDialog('error', 'Title is invalid.')
+    if (taskTitle === '' || taskContent === '') {
+      await openAlertDialog('error', 'Empty exists.')
       setIsLoading(false)
       return
     }
-    if (taskContent === '' || taskContent === task?.content) {
-      await openAlertDialog('error', 'Content is invalid.')
+    if (taskTitle === task?.title && taskContent === task?.content) {
+      await openAlertDialog('error', 'No edit.')
       setIsLoading(false)
       return
     }

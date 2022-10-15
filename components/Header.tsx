@@ -2,15 +2,17 @@ import { AppBar, Button, IconButton, MenuItem, Toolbar, Typography, Menu, Box } 
 import { AccountCircle, Menu as MenuIcon, Logout, Person } from '@mui/icons-material'
 import { useEffect, useState } from 'react'
 import { DrawerMenu } from 'components/DrawerMenu'
-import { useAuth } from 'contexts/AuthProvider'
 import { path } from 'utils/path'
 import Link from 'next/link'
+import { authAtom } from 'atoms/atoms'
+import { useAtom } from 'jotai'
+import { loginWithGoogle, logout } from 'utils/firebase'
 
 export const Header = () => {
+  const [currentUser] = useAtom(authAtom)
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const toggleDrawer = () => setDrawerOpen(!drawerOpen)
-  const { currentUser, login, logout } = useAuth()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const toggleDrawer = () => setDrawerOpen(!drawerOpen)
 
   // ログイン時にアイコンのメニューが開くのを防ぐ
   useEffect(() => {
@@ -39,7 +41,7 @@ export const Header = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Link href={path.home}>
+          <Link href={path.home} passHref>
             <Typography variant="h5" component="div" sx={{ cursor: 'pointer' }}>
               ToDoApp
             </Typography>
@@ -72,7 +74,7 @@ export const Header = () => {
                 open={anchorEl != null}
                 onClose={closeMenu}
               >
-                <Link href={path.user}>
+                <Link href={path.user} passHref>
                   <MenuItem onClick={closeMenu}>
                     <Person sx={{ mr: 1 }} />
                     Profile
@@ -86,7 +88,7 @@ export const Header = () => {
             </>
           ) : (
             <>
-              <Button color="inherit" onClick={login}>
+              <Button color="inherit" onClick={loginWithGoogle}>
                 Login
               </Button>
             </>

@@ -1,11 +1,16 @@
 import { Task } from '@prisma/client'
 import useSWR from 'swr'
 import { ToDoItem } from 'components/ToDoItem'
-import { useAuth } from 'contexts/AuthProvider'
 import { apiPath } from 'utils/api'
+import { authAtom } from 'atoms/atoms'
+import { useAtom } from 'jotai'
+
+const isArray = <T,>(maybeArray: T | readonly T[]): maybeArray is T[] => {
+  return Array.isArray(maybeArray)
+}
 
 export const ToDoList = () => {
-  const { currentUser } = useAuth()
+  const [currentUser] = useAtom(authAtom)
   const fetcher = async (url: string) => {
     const token = await currentUser?.getIdToken(true)
     const res = await fetch(url, {
@@ -21,9 +26,9 @@ export const ToDoList = () => {
 
   return (
     <>
-      {tasks && (
+      {tasks && isArray<Task>(tasks) && (
         <>
-          {tasks.map((task) => (
+          {tasks?.map((task) => (
             <ToDoItem key={task.id} task={task}></ToDoItem>
           ))}
         </>

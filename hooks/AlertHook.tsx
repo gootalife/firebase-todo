@@ -9,9 +9,9 @@ import {
 } from '@mui/material'
 import { useState } from 'react'
 
-type UseAlertResult = [(title: string, text: string) => Promise<void>, () => JSX.Element]
+type AlertHook = [(title: string, text: string) => Promise<void>, () => JSX.Element]
 
-export const useAlert = (): UseAlertResult => {
+export const useAlert = (): AlertHook => {
   const [isOpen, setIsOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [text, setText] = useState('')

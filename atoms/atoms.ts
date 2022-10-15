@@ -1,4 +1,4 @@
-import { User } from 'firebase/auth'
 import { atom } from 'jotai'
+import { UserOrNull } from 'utils/firebase';
 
-export const authAtom = atom<User | null | undefined>(undefined)
+export const authAtom = atom<Promise<UserOrNull> | UserOrNull>(null);

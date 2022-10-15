@@ -1,5 +1,7 @@
 import { initializeApp, getApps } from 'firebase/app'
-import { getAuth, browserSessionPersistence, setPersistence } from 'firebase/auth'
+import { getAuth, browserSessionPersistence, setPersistence, GoogleAuthProvider, signInWithPopup, TwitterAuthProvider, User } from 'firebase/auth'
+import router from 'next/router'
+import { path } from './path'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -17,3 +19,20 @@ if (!getApps().length) {
 export const auth = getAuth()
 
 setPersistence(auth, browserSessionPersistence)
+
+export const loginWithGoogle = async () => {
+  const provider = new GoogleAuthProvider()
+  await signInWithPopup(auth, provider)
+}
+
+export const loginWithTwitter = async () => {
+  const provider = new TwitterAuthProvider()
+  await signInWithPopup(auth, provider)
+}
+
+export const logout = async () => {
+  await auth.signOut()
+  await router.push(path.home)
+}
+
+export type UserOrNull = User | null;

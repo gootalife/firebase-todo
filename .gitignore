@@ -35,6 +35,8 @@ yarn-error.log*
 *.tsbuildinfo
 
 *.db
+*.db-journal
 .env
 dist/
 serviceAccountKey.json
+prisma/migrations

@@ -9,9 +9,12 @@ import { useAlert } from 'hooks/alertHook'
 import { Task } from '@prisma/client'
 import { LibraryAdd } from '@mui/icons-material'
 import { mutate } from 'swr'
+import { authAtom } from 'atoms/atoms'
+import { useAtom } from 'jotai'
+import { loginWithGoogle } from 'utils/firebase'
 
 const Index = () => {
-  const { currentUser, login } = useAuth()
+  const [currentUser] = useAtom(authAtom)
   const [openTaskForm, renderTaskForm] = useTaskForm()
   const [openAlertDialog, renderAlertDialog] = useAlert()
 
@@ -62,7 +65,7 @@ const Index = () => {
       ) : (
         <>
           <h1>Login</h1>
-          <Button variant="contained" onClick={async () => await login()}>
+          <Button variant="contained" onClick={async () => await loginWithGoogle()}>
             Login with google
           </Button>
         </>

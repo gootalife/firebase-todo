@@ -1,19 +1,20 @@
 import { Task } from '@prisma/client'
 import { Button } from '@mui/material'
 import { Delete, Edit } from '@mui/icons-material'
-import { useAuth } from 'contexts/AuthProvider'
 import { useSWRConfig } from 'swr'
 import { useConfirm } from 'hooks/confirmHook'
 import { useAlert } from 'hooks/alertHook'
 import { useTaskForm } from 'hooks/taskFormHook'
 import { apiPath, updateTask, deleteTask } from 'utils/api'
+import { useAtom } from 'jotai'
+import { authAtom } from 'atoms/atoms'
 
 type Props = {
   task: Task
 }
 
 export const ToDoItem = (props: Props) => {
-  const { currentUser } = useAuth()
+  const [currentUser] = useAtom(authAtom)
   const [openAlertDialog, renderAlertDialog] = useAlert()
   const [openConfirmDialog, renderConfirmDialog] = useConfirm()
   const [openTaskForm, renderTaskForm] = useTaskForm()

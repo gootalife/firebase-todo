@@ -7,9 +7,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "build:seed": "tsc -p tsconfig.seed.json --outDir ./dist",
-    "build:all": "npm run build && npm run build:seed",
-    "insert": "npm run build:seed && node ./dist/prisma/seed.js",
     "init:db": "prisma migrate dev --name init"
   },
   "prisma": {

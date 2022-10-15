@@ -10,9 +10,9 @@ import {
 } from '@mui/material'
 import { useState } from 'react'
 
-type UseConfirmResult = [(title: string, text: string) => Promise<boolean>, () => JSX.Element]
+type ConfirmHook = [(title: string, text: string) => Promise<boolean>, () => JSX.Element]
 
-export const useConfirm = (): UseConfirmResult => {
+export const useConfirm = (): ConfirmHook => {
   const [isOpen, setIsOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [text, setText] = useState('')
