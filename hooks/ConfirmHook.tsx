@@ -1,4 +1,13 @@
-import { ConfirmDialog } from 'components/ConfirmDialog'
+import { Check, Close } from '@mui/icons-material'
+import { LoadingButton } from '@mui/lab'
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button
+} from '@mui/material'
 import { useState } from 'react'
 
 type UseConfirmResult = [(title: string, text: string) => Promise<boolean>, () => JSX.Element]
@@ -7,6 +16,7 @@ export const useConfirm = (): UseConfirmResult => {
   const [isOpen, setIsOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [text, setText] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const [resolveCallback, setResolveCallback] = useState<{
     do: (value: boolean | PromiseLike<boolean>) => void
   }>({ do: () => {} })
@@ -27,18 +37,32 @@ export const useConfirm = (): UseConfirmResult => {
   }
 
   const execute = () => {
+    setIsLoading(true)
     setIsOpen(false)
     resolveCallback.do(true)
+    setIsLoading(false)
   }
 
   const renderConfirmDialog = () => (
-    <ConfirmDialog
-      title={title}
-      text={text}
-      isOpen={isOpen}
-      onCancel={cancel}
-      onExecute={execute}
-    />
+    <Dialog open={isOpen} fullWidth>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>{text}</DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <LoadingButton
+          variant="contained"
+          onClick={execute}
+          startIcon={<Check />}
+          loading={isLoading}
+        >
+          YES
+        </LoadingButton>
+        <Button variant="outlined" onClick={cancel} startIcon={<Close />}>
+          NO
+        </Button>
+      </DialogActions>
+    </Dialog>
   )
 
   return [openConfirmDialog, renderConfirmDialog]

@@ -1,11 +1,45 @@
 import Head from 'next/head'
-import { ToDo } from 'components/ToDo'
+import { ToDoList } from 'components/ToDoList'
 import { useAuth } from 'contexts/AuthProvider'
 import { Button, CircularProgress, Grid } from '@mui/material'
 import { Suspense } from 'react'
+import { apiPath, insertTask } from 'utils/api'
+import { useTaskForm } from 'hooks/taskFormHook'
+import { useAlert } from 'hooks/alertHook'
+import { Task } from '@prisma/client'
+import { LibraryAdd } from '@mui/icons-material'
+import { mutate } from 'swr'
 
 const Index = () => {
   const { currentUser, login } = useAuth()
+  const [openTaskForm, renderTaskForm] = useTaskForm()
+  const [openAlertDialog, renderAlertDialog] = useAlert()
+
+  const insert = async () => {
+    const task = await openTaskForm('TaskForm', 'Input items', undefined)
+    if (!task || !currentUser) {
+      return
+    }
+    if (task.title === '' || task.content === '') {
+      await openAlertDialog('Error', 'Input is invalid.')
+      return
+    }
+    const param: Partial<Task> = {
+      title: task.title,
+      content: task.content
+    }
+    try {
+      const res = await insertTask(param, currentUser)
+      if (res.ok) {
+        await openAlertDialog('Completed', 'Save completed.')
+        mutate(apiPath.task)
+      } else {
+        throw new Error()
+      }
+    } catch (err) {
+      await openAlertDialog('Error', 'Failed.')
+    }
+  }
 
   return (
     <>
@@ -15,7 +49,15 @@ const Index = () => {
       {currentUser ? (
         <>
           <h1>ToDo List</h1>
-          <ToDo></ToDo>
+          <Grid container justifyContent="flex-end">
+            <Button variant="contained" onClick={insert} startIcon={<LibraryAdd />}>
+              Add
+            </Button>
+          </Grid>
+          <hr />
+          <Suspense fallback={<CircularProgress color="inherit" />}>
+            <ToDoList></ToDoList>
+          </Suspense>
         </>
       ) : (
         <>
@@ -25,6 +67,8 @@ const Index = () => {
           </Button>
         </>
       )}
+      {renderTaskForm()}
+      {renderAlertDialog()}
     </>
   )
 }

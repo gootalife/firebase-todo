@@ -1,4 +1,12 @@
-import { AlertDialog } from 'components/AlertDialog'
+import { Check } from '@mui/icons-material'
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button
+} from '@mui/material'
 import { useState } from 'react'
 
 type UseAlertResult = [(title: string, text: string) => Promise<void>, () => JSX.Element]
@@ -27,7 +35,17 @@ export const useAlert = (): UseAlertResult => {
   }
 
   const renderAlertDialog = () => (
-    <AlertDialog title={title} text={text} isOpen={isOpen} onClose={close} />
+    <Dialog open={isOpen} fullWidth>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>{text}</DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button variant="contained" onClick={close} startIcon={<Check />}>
+          Close
+        </Button>
+      </DialogActions>
+    </Dialog>
   )
 
   return [openAlertDialog, renderAlertDialog]
