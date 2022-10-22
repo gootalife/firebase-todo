@@ -1,5 +1,5 @@
 {
-  "name": "next-todo",
+  "name": "firebase-todo",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -24,6 +24,7 @@
     "firebase-admin": "^10.2.0",
     "jotai": "^1.8.5",
     "next": "12.1.5",
+    "nookies": "^2.5.2",
     "react": "18.0.0",
     "react-dom": "18.0.0",
     "sqlite3": "^5.0.2",

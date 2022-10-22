@@ -66,6 +66,7 @@ export const ToDoItem = (props: Props) => {
 
   return (
     <>
+      <hr />
       <h3>{props.task.title}</h3>
       <div>{props.task.content}</div>
 
@@ -78,7 +79,6 @@ export const ToDoItem = (props: Props) => {
       {renderTaskForm()}
       {renderAlertDialog()}
       {renderConfirmDialog()}
-      <hr />
     </>
   )
 }

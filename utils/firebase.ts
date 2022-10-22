@@ -2,6 +2,7 @@ import { initializeApp, getApps } from 'firebase/app'
 import { getAuth, browserSessionPersistence, setPersistence, GoogleAuthProvider, signInWithPopup, TwitterAuthProvider, User } from 'firebase/auth'
 import router from 'next/router'
 import { path } from './path'
+import { destroyCookie } from 'nookies';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -22,15 +23,22 @@ setPersistence(auth, browserSessionPersistence)
 
 export const loginWithGoogle = async () => {
   const provider = new GoogleAuthProvider()
-  await signInWithPopup(auth, provider)
+  try {
+    await signInWithPopup(auth, provider)
+  } catch {
+  }
 }
 
 export const loginWithTwitter = async () => {
   const provider = new TwitterAuthProvider()
-  await signInWithPopup(auth, provider)
+  try {
+    await signInWithPopup(auth, provider)
+  } catch {
+  }
 }
 
 export const logout = async () => {
+  destroyCookie(null, 'accessToken')
   await auth.signOut()
   await router.push(path.home)
 }

@@ -1,14 +1,22 @@
 import { AppBar, Button, IconButton, MenuItem, Toolbar, Typography, Menu, Box } from '@mui/material'
-import { AccountCircle, Menu as MenuIcon, Logout, Person } from '@mui/icons-material'
+import {
+  AccountCircle,
+  Menu as MenuIcon,
+  Logout,
+  Person,
+  FormatListBulleted
+} from '@mui/icons-material'
 import { useEffect, useState } from 'react'
 import { DrawerMenu } from 'components/DrawerMenu'
 import { path } from 'utils/path'
 import Link from 'next/link'
-import { loginWithGoogle, logout } from 'utils/firebase'
+import { logout } from 'utils/firebase'
 import { useAuth } from 'hooks/authHook'
+import { useRouter } from 'next/router'
 
 export const Header = () => {
-  const currentUser = useAuth()
+  const user = useAuth()
+  const router = useRouter()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const toggleDrawer = () => setDrawerOpen(!drawerOpen)
@@ -16,7 +24,7 @@ export const Header = () => {
   // ログイン時にアイコンのメニューが開くのを防ぐ
   useEffect(() => {
     setAnchorEl(null)
-  }, [currentUser])
+  }, [user])
 
   const openMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -24,6 +32,10 @@ export const Header = () => {
 
   const closeMenu = async () => {
     setAnchorEl(null)
+  }
+
+  const clickLogin = () => {
+    router.push(path.login)
   }
 
   return (
@@ -46,7 +58,7 @@ export const Header = () => {
             </Typography>
           </Link>
           <Box sx={{ flexGrow: 1 }}></Box>
-          {currentUser ? (
+          {user ? (
             <>
               <IconButton
                 size="large"
@@ -73,6 +85,12 @@ export const Header = () => {
                 open={anchorEl != null}
                 onClose={closeMenu}
               >
+                <Link href={path.todo} passHref>
+                  <MenuItem onClick={closeMenu}>
+                    <FormatListBulleted sx={{ mr: 1 }} />
+                    Todo
+                  </MenuItem>
+                </Link>
                 <Link href={path.user} passHref>
                   <MenuItem onClick={closeMenu}>
                     <Person sx={{ mr: 1 }} />
@@ -87,7 +105,7 @@ export const Header = () => {
             </>
           ) : (
             <>
-              <Button color="inherit" onClick={loginWithGoogle}>
+              <Button color="inherit" onClick={clickLogin}>
                 Login
               </Button>
             </>
