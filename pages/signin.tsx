@@ -1,10 +1,9 @@
-import { Google, Twitter } from '@mui/icons-material'
+import { Twitter } from '@mui/icons-material'
 import { Button } from '@mui/material'
 import { useAuth } from 'hooks/authHook'
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
-import { useRouter } from 'next/router'
-import { loginWithGoogle, loginWithTwitter } from 'utils/firebase'
+import { signInWithTwitter } from 'utils/firebase'
 import { firebaseAdmin } from 'utils/firebaseAdmin'
 import { path } from 'utils/path'
 
@@ -16,8 +15,8 @@ const Login = () => {
         <title>ToDoApp</title>
       </Head>
       <h1>Login</h1>
-      <Button variant="contained" onClick={loginWithGoogle} startIcon={<Google />}>
-        Sign in with Google
+      <Button variant="contained" onClick={signInWithTwitter} startIcon={<Twitter />}>
+        Sign in with Twitter
       </Button>
     </>
   )

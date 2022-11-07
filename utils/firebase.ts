@@ -21,7 +21,7 @@ export const auth = getAuth()
 
 setPersistence(auth, browserSessionPersistence)
 
-export const loginWithGoogle = async () => {
+export const signInWithGoogle = async () => {
   const provider = new GoogleAuthProvider()
   try {
     await signInWithPopup(auth, provider)
@@ -29,7 +29,7 @@ export const loginWithGoogle = async () => {
   }
 }
 
-export const loginWithTwitter = async () => {
+export const signInWithTwitter = async () => {
   const provider = new TwitterAuthProvider()
   try {
     await signInWithPopup(auth, provider)
